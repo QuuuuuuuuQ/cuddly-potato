@@ -1,2 +1,205 @@
 <!DOCTYPE html>
-<!-- truncated for brevity, full HTML content will be inserted in actual deployment -->
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <title>小遊戲：射爆地瓜球</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: radial-gradient(circle at center, #ffe6f0 0%, #ffb3d9 100%);
+      font-family: 'Comic Sans MS', cursive, sans-serif;
+    }
+
+    #gameCanvas {
+      display: block;
+      background: transparent;
+    }
+
+    #score {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      font-size: 24px;
+      color: #ff1493;
+      background: rgba(255, 255, 255, 0.7);
+      padding: 10px 20px;
+      border-radius: 15px;
+      box-shadow: 0 0 10px #ff69b4;
+    }
+
+    #crosshair {
+      position: absolute;
+      width: 40px;
+      height: 40px;
+      background: url('https://upload.wikimedia.org/wikipedia/commons/7/72/Crosshair_icon.svg') no-repeat center center;
+      background-size: contain;
+      pointer-events: none;
+      mix-blend-mode: overlay;
+    }
+  </style>
+</head>
+<body>
+  <div id="score">已射爆 0 顆地瓜球</div>
+  <canvas id="gameCanvas"></canvas>
+  <div id="crosshair"></div>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const scoreText = document.getElementById("score");
+    const crosshair = document.getElementById("crosshair");
+
+    const normalImgs = [
+      './sweet_potato_variant_1.png',
+      './sweet_potato_variant_2.png',
+      './sweet_potato_variant_3.png'
+    ];
+
+    const normalPotatoImgs = normalImgs.map(src => {
+      const img = new Image();
+      img.src = src;
+      return img;
+    });
+
+    let cryingImg = new Image();
+    cryingImg.src = './crying_potato.png'; // 被射中後的哭哭表情
+
+    const potatoes = [];
+    let score = 0;
+    const lasers = [];
+
+    class Potato {
+      constructor(x, y, img, speedMultiplier) {
+        this.x = x;
+        this.y = y;
+        this.r = 40;
+        this.img = img;
+        this.speedX = (Math.random() - 0.5) * 3 * speedMultiplier;
+        this.speedY = (Math.random() - 0.5) * 3 * speedMultiplier;
+        this.hit = false;
+        this.hitTime = 0;
+        this.speedMultiplier = speedMultiplier;
+      }
+
+      draw() {
+        const img = this.hit ? cryingImg : this.img;
+        if (img.complete) {
+          ctx.drawImage(img, this.x - this.r, this.y - this.r, this.r * 2, this.r * 2);
+        }
+      }
+
+      update() {
+        if (!this.hit) {
+          if (this.speedMultiplier > 0) {
+            this.x += this.speedX;
+            this.y += this.speedY;
+            if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
+            if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
+          }
+        } else {
+          if (Date.now() - this.hitTime > 500) {
+            const idx = potatoes.indexOf(this);
+            if (idx > -1) potatoes.splice(idx, 1);
+          }
+        }
+      }
+    }
+
+    class Laser {
+      constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.created = Date.now();
+        this.duration = 100;
+      }
+
+      draw() {
+        const alpha = 1 - (Date.now() - this.created) / this.duration;
+        if (alpha <= 0) return;
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.strokeStyle = "#ff0000";
+        ctx.shadowColor = "#ff66cc";
+        ctx.shadowBlur = 20;
+        ctx.beginPath();
+        ctx.moveTo(canvas.width / 2, canvas.height);
+        ctx.lineTo(this.x, this.y);
+        ctx.lineWidth = 4;
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      isExpired() {
+        return Date.now() - this.created > this.duration;
+      }
+    }
+
+    function shoot(x, y) {
+      lasers.push(new Laser(x, y));
+
+      potatoes.forEach(p => {
+        const dx = p.x - x;
+        const dy = p.y - y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < p.r && !p.hit) {
+          p.hit = true;
+          p.hitTime = Date.now();
+          score++;
+          scoreText.innerText = `已射爆 ${score} 顆地瓜球`;
+          sparkle(p.x, p.y);
+        }
+      });
+    }
+
+    function sparkle(x, y) {
+      for (let i = 0; i < 10; i++) {
+        ctx.beginPath();
+        ctx.arc(x + Math.random()*20 - 10, y + Math.random()*20 - 10, 4, 0, Math.PI * 2);
+        ctx.fillStyle = `hsl(${Math.random()*360}, 100%, 70%)`;
+        ctx.fill();
+      }
+    }
+
+    canvas.addEventListener("click", e => shoot(e.clientX, e.clientY));
+    document.addEventListener("mousemove", e => {
+      crosshair.style.left = `${e.clientX - 20}px`;
+      crosshair.style.top = `${e.clientY - 20}px`;
+    });
+
+    function loop() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      potatoes.forEach(p => {
+        p.update();
+        p.draw();
+      });
+      lasers.forEach(l => l.draw());
+      while (lasers.length && lasers[0].isExpired()) {
+        lasers.shift();
+      }
+      requestAnimationFrame(loop);
+    }
+
+    setInterval(() => {
+      const x = Math.random() * canvas.width;
+      const y = Math.random() * canvas.height;
+      const imgIndex = Math.floor(Math.random() * normalPotatoImgs.length);
+      const img = normalPotatoImgs[imgIndex];
+      let speedMultiplier = 1;
+
+      // 依照圖像決定速度：variant_1=快、variant_2=超快、variant_3=完全不動
+      if (imgIndex === 0) speedMultiplier = 1.2;
+      else if (imgIndex === 1) speedMultiplier = 2;
+      else if (imgIndex === 2) speedMultiplier = 0;
+
+      potatoes.push(new Potato(x, y, img, speedMultiplier));
+    }, 2000);
+
+    loop();
+  </script>
+</body>
+</html>
