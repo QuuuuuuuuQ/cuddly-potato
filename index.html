@@ -1,236 +1,220 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-<html>
+<!DOCTYPE html>
+<html lang="zh">
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-  <meta http-equiv="Content-Style-Type" content="text/css">
-  <title></title>
-  <meta name="Generator" content="Cocoa HTML Writer">
-  <meta name="CocoaVersion" content="2575.7">
-  <style type="text/css">
-    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica}
-    p.p2 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica; min-height: 14.0px}
+  <meta charset="UTF-8">
+  <title>射爆地瓜球</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+    body {
+      background: url('market_background.jpg') no-repeat center center fixed;
+      background-size: cover;
+      font-family: sans-serif;
+    }
+    canvas {
+      display: block;
+    }
+    #startOverlay, #poopOverlay, #medalPopup {
+      position: absolute;
+      z-index: 99;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0, 0, 0, 0.7);
+      color: #fff;
+      padding: 20px 40px;
+      border-radius: 10px;
+      font-size: 20px;
+      display: none;
+      text-align: center;
+    }
+    #score {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      font-size: 24px;
+      background: rgba(255,255,255,0.8);
+      padding: 6px 12px;
+      border-radius: 8px;
+      z-index: 10;
+      font-weight: bold;
+    }
+    #medalPopup {
+      animation: glow 1s ease-in-out infinite alternate;
+    }
+    @keyframes glow {
+      from {
+        box-shadow: 0 0 10px #fff;
+      }
+      to {
+        box-shadow: 0 0 20px gold;
+      }
+    }
   </style>
 </head>
 <body>
-<p class="p1">&lt;!DOCTYPE html&gt;</p>
-<p class="p1">&lt;html lang="zh"&gt;</p>
-<p class="p1">&lt;head&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;meta charset="UTF-8"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;title&gt;射爆地瓜球&lt;/title&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;style&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>html, body {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>margin: 0;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>padding: 0;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>overflow: hidden;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p1"><span class="Apple-converted-space">    </span>body {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>background: url('market_background.jpg') no-repeat center center fixed;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>background-size: cover;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>font-family: sans-serif;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p1"><span class="Apple-converted-space">    </span>canvas {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>display: block;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p1"><span class="Apple-converted-space">    </span>#startOverlay, #poopOverlay, #medalPopup {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>position: absolute;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>z-index: 99;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>top: 50%;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>left: 50%;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>transform: translate(-50%, -50%);</p>
-<p class="p1"><span class="Apple-converted-space">      </span>background: rgba(0, 0, 0, 0.7);</p>
-<p class="p1"><span class="Apple-converted-space">      </span>color: #fff;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>padding: 20px 40px;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>border-radius: 10px;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>font-size: 20px;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>display: none;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>text-align: center;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p1"><span class="Apple-converted-space">    </span>#score {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>position: absolute;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>top: 10px;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>left: 10px;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>font-size: 24px;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>background: rgba(255,255,255,0.8);</p>
-<p class="p1"><span class="Apple-converted-space">      </span>padding: 6px 12px;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>border-radius: 8px;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>z-index: 10;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>font-weight: bold;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p1"><span class="Apple-converted-space">    </span>#medalPopup {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>animation: glow 1s ease-in-out infinite alternate;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p1"><span class="Apple-converted-space">    </span>@keyframes glow {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>from {</p>
-<p class="p1"><span class="Apple-converted-space">        </span>box-shadow: 0 0 10px #fff;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>}</p>
-<p class="p1"><span class="Apple-converted-space">      </span>to {</p>
-<p class="p1"><span class="Apple-converted-space">        </span>box-shadow: 0 0 20px gold;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>}</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;/style&gt;</p>
-<p class="p1">&lt;/head&gt;</p>
-<p class="p1">&lt;body&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;div id="score"&gt;你已射爆 0 顆地瓜球&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;div id="startOverlay"&gt;點擊開始掉炸地瓜球&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;div id="poopOverlay"&gt;糟糕！你被地瓜球丟屎了。&lt;br/&gt;點擊按我繼續&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;div id="medalPopup"&gt;&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;canvas id="game"&gt;&lt;/canvas&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;script&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const canvas = document.getElementById("game");</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const ctx = canvas.getContext("2d");</p>
-<p class="p1"><span class="Apple-converted-space">    </span>canvas.width = window.innerWidth;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>canvas.height = window.innerHeight;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>const startOverlay = document.getElementById("startOverlay");</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const poopOverlay = document.getElementById("poopOverlay");</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const medalPopup = document.getElementById("medalPopup");</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const scoreDisplay = document.getElementById("score");</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>let started = false;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>let score = 0;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const potatoes = [];</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const lasers = [];</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const poopParticles = [];</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>const normalImages = [];</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const cryFaces = [];</p>
-<p class="p1"><span class="Apple-converted-space">    </span>for (let i = 1; i &lt;= 10; i++) {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>const img = new Image();</p>
-<p class="p1"><span class="Apple-converted-space">      </span>img.src = `normal_potato${i}.png`;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>normalImages.push(img);</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p1"><span class="Apple-converted-space">    </span>for (let i = 1; i &lt;= 7; i++) {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>const img = new Image();</p>
-<p class="p1"><span class="Apple-converted-space">      </span>img.src = `shoot_potato${i}.png`;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>cryFaces.push(img);</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const poopImg = new Image();</p>
-<p class="p1"><span class="Apple-converted-space">    </span>poopImg.src = 'poop_attack.png';</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>class Potato {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>constructor(x, y, type) {</p>
-<p class="p1"><span class="Apple-converted-space">        </span>this.x = x;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>this.y = y;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>this.type = type;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>this.img = normalImages[type];</p>
-<p class="p1"><span class="Apple-converted-space">        </span>this.cry = cryFaces[Math.floor(Math.random() * cryFaces.length)];</p>
-<p class="p1"><span class="Apple-converted-space">        </span>this.size = 60;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>this.speed = 1 + Math.random();</p>
-<p class="p1"><span class="Apple-converted-space">        </span>if (type === 5) this.speed = 0.5;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>if (type === 8) this.speed = 2;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>this.hit = false;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>this.life = (type === 3) ? Math.ceil(Math.random() * 3) : 1;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>}</p>
-<p class="p1"><span class="Apple-converted-space">      </span>update() {</p>
-<p class="p1"><span class="Apple-converted-space">        </span>if (this.hit) return;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>if (this.type === 9) return; // 疑問地瓜不動</p>
-<p class="p1"><span class="Apple-converted-space">        </span>this.y += this.speed;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>}</p>
-<p class="p1"><span class="Apple-converted-space">      </span>draw() {</p>
-<p class="p1"><span class="Apple-converted-space">        </span>const img = this.hit ? this.cry : this.img;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>ctx.drawImage(img, this.x, this.y, this.size, this.size);</p>
-<p class="p1"><span class="Apple-converted-space">      </span>}</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>function spawnPotato() {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>const x = Math.random() * (canvas.width - 60);</p>
-<p class="p1"><span class="Apple-converted-space">      </span>const type = Math.floor(Math.random() * 10);</p>
-<p class="p1"><span class="Apple-converted-space">      </span>potatoes.push(new Potato(x, 0, type));</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>function drawPoopParticles() {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>poopParticles.forEach((p, i) =&gt; {</p>
-<p class="p1"><span class="Apple-converted-space">        </span>p.x += p.vx;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>p.y += p.vy;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>p.scale += 0.01;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>p.rot += 0.1;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>ctx.save();</p>
-<p class="p1"><span class="Apple-converted-space">        </span>ctx.translate(p.x, p.y);</p>
-<p class="p1"><span class="Apple-converted-space">        </span>ctx.rotate(p.rot);</p>
-<p class="p1"><span class="Apple-converted-space">        </span>ctx.drawImage(poopImg, -15 * p.scale, -15 * p.scale, 30 * p.scale, 30 * p.scale);</p>
-<p class="p1"><span class="Apple-converted-space">        </span>ctx.restore();</p>
-<p class="p1"><span class="Apple-converted-space">        </span>if (p.y &gt; canvas.height + 50) poopParticles.splice(i, 1);</p>
-<p class="p1"><span class="Apple-converted-space">      </span>});</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>function showMedal(score) {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>let text = '';</p>
-<p class="p1"><span class="Apple-converted-space">      </span>if (score === 20) text = "🥉 地瓜碎星者&lt;br&gt;你的彈射，讓地瓜碎成宇宙微塵";</p>
-<p class="p1"><span class="Apple-converted-space">      </span>if (score === 50) text = "🥈 暗影射手・滅地瓜流&lt;br&gt;你的手速，地瓜球夫婦嚇得連夜跑走";</p>
-<p class="p1"><span class="Apple-converted-space">      </span>if (score === 100) text = "👑 地瓜毀滅神話&lt;br&gt;妳是地瓜的惡夢、宇宙的傳說！";</p>
-<p class="p1"><span class="Apple-converted-space">      </span>if (text) {</p>
-<p class="p1"><span class="Apple-converted-space">        </span>medalPopup.innerHTML = text;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>medalPopup.style.display = 'block';</p>
-<p class="p1"><span class="Apple-converted-space">        </span>setTimeout(() =&gt; medalPopup.style.display = 'none', 3000);</p>
-<p class="p1"><span class="Apple-converted-space">      </span>}</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>function animate() {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>ctx.clearRect(0, 0, canvas.width, canvas.height);</p>
-<p class="p1"><span class="Apple-converted-space">      </span>potatoes.forEach(p =&gt; {</p>
-<p class="p1"><span class="Apple-converted-space">        </span>p.update();</p>
-<p class="p1"><span class="Apple-converted-space">        </span>p.draw();</p>
-<p class="p1"><span class="Apple-converted-space">      </span>});</p>
-<p class="p1"><span class="Apple-converted-space">      </span>drawPoopParticles();</p>
-<p class="p1"><span class="Apple-converted-space">      </span>requestAnimationFrame(animate);</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>canvas.addEventListener("click", e =&gt; {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>if (!started) return;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>const mx = e.clientX, my = e.clientY;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>potatoes.forEach((p, i) =&gt; {</p>
-<p class="p1"><span class="Apple-converted-space">        </span>if (!p.hit &amp;&amp; mx &gt; p.x &amp;&amp; mx &lt; p.x + p.size &amp;&amp; my &gt; p.y &amp;&amp; my &lt; p.y + p.size) {</p>
-<p class="p1"><span class="Apple-converted-space">          </span>p.life--;</p>
-<p class="p1"><span class="Apple-converted-space">          </span>if (p.type === 0 &amp;&amp; Math.random() &lt; 0.2) {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>for (let j = 0; j &lt; 6; j++) {</p>
-<p class="p1"><span class="Apple-converted-space">              </span>poopParticles.push({</p>
-<p class="p1"><span class="Apple-converted-space">                </span>x: p.x + 30,</p>
-<p class="p1"><span class="Apple-converted-space">                </span>y: p.y + 30,</p>
-<p class="p1"><span class="Apple-converted-space">                </span>vx: (Math.random() - 0.5) * 10,</p>
-<p class="p1"><span class="Apple-converted-space">                </span>vy: Math.random() * 5,</p>
-<p class="p1"><span class="Apple-converted-space">                </span>rot: 0,</p>
-<p class="p1"><span class="Apple-converted-space">                </span>scale: 0.5 + Math.random() * 0.5</p>
-<p class="p1"><span class="Apple-converted-space">              </span>});</p>
-<p class="p1"><span class="Apple-converted-space">            </span>}</p>
-<p class="p1"><span class="Apple-converted-space">          </span>}</p>
-<p class="p1"><span class="Apple-converted-space">          </span>if (p.type === 1) {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>p.type = 2;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>p.img = normalImages[2];</p>
-<p class="p1"><span class="Apple-converted-space">            </span>return;</p>
-<p class="p1"><span class="Apple-converted-space">          </span>}</p>
-<p class="p1"><span class="Apple-converted-space">          </span>if (p.life &lt;= 0) {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>p.hit = true;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>score++;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>scoreDisplay.innerText = `你已射爆 ${score} 顆地瓜球`;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>showMedal(score);</p>
-<p class="p1"><span class="Apple-converted-space">          </span>}</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p1"><span class="Apple-converted-space">      </span>});</p>
-<p class="p1"><span class="Apple-converted-space">    </span>});</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>function randomPoopAttack() {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>if (Math.random() &lt; 0.01) {</p>
-<p class="p1"><span class="Apple-converted-space">        </span>poopOverlay.style.display = 'block';</p>
-<p class="p1"><span class="Apple-converted-space">        </span>setTimeout(() =&gt; poopOverlay.style.display = 'none', 2000);</p>
-<p class="p1"><span class="Apple-converted-space">      </span>}</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>setInterval(() =&gt; {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>if (!started) return;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>spawnPotato();</p>
-<p class="p1"><span class="Apple-converted-space">      </span>randomPoopAttack();</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}, 1000);</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>startOverlay.style.display = 'block';</p>
-<p class="p1"><span class="Apple-converted-space">    </span>startOverlay.addEventListener('click', () =&gt; {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>startOverlay.style.display = 'none';</p>
-<p class="p1"><span class="Apple-converted-space">      </span>started = true;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>});</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>poopOverlay.addEventListener('click', () =&gt; poopOverlay.style.display = 'none');</p>
-<p class="p1"><span class="Apple-converted-space">    </span>animate();</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;/script&gt;</p>
-<p class="p1">&lt;/body&gt;</p>
-<p class="p1">&lt;/html&gt;</p>
+  <div id="score">你已射爆 0 顆地瓜球</div>
+  <div id="startOverlay">點擊開始掉炸地瓜球</div>
+  <div id="poopOverlay">糟糕！你被地瓜球丟屎了。<br/>點擊按我繼續</div>
+  <div id="medalPopup"></div>
+  <canvas id="game"></canvas>
+  <script>
+    const canvas = document.getElementById("game");
+    const ctx = canvas.getContext("2d");
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const startOverlay = document.getElementById("startOverlay");
+    const poopOverlay = document.getElementById("poopOverlay");
+    const medalPopup = document.getElementById("medalPopup");
+    const scoreDisplay = document.getElementById("score");
+
+    let started = false;
+    let score = 0;
+    const potatoes = [];
+    const lasers = [];
+    const poopParticles = [];
+
+    const normalImages = [];
+    const cryFaces = [];
+    for (let i = 1; i <= 10; i++) {
+      const img = new Image();
+      img.src = `normal_potato${i}.png`;
+      normalImages.push(img);
+    }
+    for (let i = 1; i <= 7; i++) {
+      const img = new Image();
+      img.src = `shoot_potato${i}.png`;
+      cryFaces.push(img);
+    }
+    const poopImg = new Image();
+    poopImg.src = 'poop_attack.png';
+
+    class Potato {
+      constructor(x, y, type) {
+        this.x = x;
+        this.y = y;
+        this.type = type;
+        this.img = normalImages[type];
+        this.cry = cryFaces[Math.floor(Math.random() * cryFaces.length)];
+        this.size = 60;
+        this.speed = 1 + Math.random();
+        if (type === 5) this.speed = 0.5;
+        if (type === 8) this.speed = 2;
+        this.hit = false;
+        this.life = (type === 3) ? Math.ceil(Math.random() * 3) : 1;
+      }
+      update() {
+        if (this.hit) return;
+        if (this.type === 9) return; // 疑問地瓜不動
+        this.y += this.speed;
+      }
+      draw() {
+        const img = this.hit ? this.cry : this.img;
+        ctx.drawImage(img, this.x, this.y, this.size, this.size);
+      }
+    }
+
+    function spawnPotato() {
+      const x = Math.random() * (canvas.width - 60);
+      const type = Math.floor(Math.random() * 10);
+      potatoes.push(new Potato(x, 0, type));
+    }
+
+    function drawPoopParticles() {
+      poopParticles.forEach((p, i) => {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.scale += 0.01;
+        p.rot += 0.1;
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.rot);
+        ctx.drawImage(poopImg, -15 * p.scale, -15 * p.scale, 30 * p.scale, 30 * p.scale);
+        ctx.restore();
+        if (p.y > canvas.height + 50) poopParticles.splice(i, 1);
+      });
+    }
+
+    function showMedal(score) {
+      let text = '';
+      if (score === 20) text = "🥉 地瓜碎星者<br>你的彈射，讓地瓜碎成宇宙微塵";
+      if (score === 50) text = "🥈 暗影射手・滅地瓜流<br>你的手速，地瓜球夫婦嚇得連夜跑走";
+      if (score === 100) text = "👑 地瓜毀滅神話<br>妳是地瓜的惡夢、宇宙的傳說！";
+      if (text) {
+        medalPopup.innerHTML = text;
+        medalPopup.style.display = 'block';
+        setTimeout(() => medalPopup.style.display = 'none', 3000);
+      }
+    }
+
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      potatoes.forEach(p => {
+        p.update();
+        p.draw();
+      });
+      drawPoopParticles();
+      requestAnimationFrame(animate);
+    }
+
+    canvas.addEventListener("click", e => {
+      if (!started) return;
+      const mx = e.clientX, my = e.clientY;
+      potatoes.forEach((p, i) => {
+        if (!p.hit && mx > p.x && mx < p.x + p.size && my > p.y && my < p.y + p.size) {
+          p.life--;
+          if (p.type === 0 && Math.random() < 0.2) {
+            for (let j = 0; j < 6; j++) {
+              poopParticles.push({
+                x: p.x + 30,
+                y: p.y + 30,
+                vx: (Math.random() - 0.5) * 10,
+                vy: Math.random() * 5,
+                rot: 0,
+                scale: 0.5 + Math.random() * 0.5
+              });
+            }
+          }
+          if (p.type === 1) {
+            p.type = 2;
+            p.img = normalImages[2];
+            return;
+          }
+          if (p.life <= 0) {
+            p.hit = true;
+            score++;
+            scoreDisplay.innerText = `你已射爆 ${score} 顆地瓜球`;
+            showMedal(score);
+          }
+        }
+      });
+    });
+
+    function randomPoopAttack() {
+      if (Math.random() < 0.01) {
+        poopOverlay.style.display = 'block';
+        setTimeout(() => poopOverlay.style.display = 'none', 2000);
+      }
+    }
+
+    setInterval(() => {
+      if (!started) return;
+      spawnPotato();
+      randomPoopAttack();
+    }, 1000);
+
+    startOverlay.style.display = 'block';
+    startOverlay.addEventListener('click', () => {
+      startOverlay.style.display = 'none';
+      started = true;
+    });
+
+    poopOverlay.addEventListener('click', () => poopOverlay.style.display = 'none');
+    animate();
+  </script>
 </body>
 </html>
