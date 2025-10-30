@@ -88,13 +88,13 @@
       position: absolute;
       width: 40px;
       transform-origin: center;
-      animation: poopFly 1s ease-out forwards;
+      animation: poopFly 3s ease-out forwards;
       z-index: 999;
     }
 
     @keyframes poopFly {
       0% { transform: scale(0.2) rotate(0deg); opacity: 1; }
-      100% { transform: scale(1.5) translateY(-100vh) rotate(720deg); opacity: 0; }
+      100% { transform: scale(2) translateY(-120vh) rotate(1080deg); opacity: 0; }
     }
 
     #poopOverlay {
@@ -243,7 +243,7 @@
         img.style.pointerEvents = "none";
 
         if (img.src.includes("normal_potato1")) {
-          if (Math.random() < 0.2) poopAttack(img);
+          if (Math.random() < 0.5) poopAttack(img);
         }
 
         setTimeout(() => {
@@ -297,7 +297,7 @@
     function poopAttack(fromImg) {
       for (let i = 0; i < 5; i++) {
         const poop = document.createElement("img");
-        poop.src = poopDataURI;
+        poop.src = "poop_attack.png";
         poop.classList.add("poop");
         poop.style.left = fromImg.style.left;
         poop.style.top = fromImg.style.top;
