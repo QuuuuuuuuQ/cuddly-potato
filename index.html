@@ -32,22 +32,6 @@
       pointer-events: auto;
     }
 
-    .laser {
-      position: absolute;
-      width: 4px;
-      height: 100vh;
-      background: red;
-      z-index: 500;
-      left: 50%;
-      transform: translateX(-50%);
-      animation: zap 0.2s ease-out;
-    }
-
-    @keyframes zap {
-      from { opacity: 1; }
-      to { opacity: 0; transform: translateX(-50%) scaleY(0.1); }
-    }
-
     #startOverlay, #medalPopup {
       position: absolute;
       top: 50%;
@@ -97,6 +81,7 @@
     <div id="medalText"></div>
     <button onclick="closeMedal()">我收下了！</button>
   </div>
+  <canvas id="laserCanvas"></canvas>
 
   <script>
     const potatoTypes = Array.from({length: 10}, (_, i) => `normal_potato${i+1}.png`);
@@ -105,6 +90,11 @@
     let score = 0;
     let awardedMedals = {};
     let balancedQueue = [...potatoTypes];
+
+    const canvas = document.getElementById("laserCanvas");
+    const ctx = canvas.getContext("2d");
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
 
     function shuffle(array) {
       for (let i = array.length - 1; i > 0; i--) {
@@ -133,7 +123,7 @@
       img.dataset.hitCount = 0;
 
       img.onclick = (e) => {
-        shootLaser(e.clientX);
+        shootLaser(e.clientX, e.clientY);
         let variant = Math.floor(Math.random() * shootFaces.length);
         img.src = shootFaces[variant];
         img.style.pointerEvents = "none";
@@ -159,12 +149,16 @@
       gameArea.appendChild(img);
     }
 
-    function shootLaser(x) {
-      const laser = document.createElement("div");
-      laser.classList.add("laser");
-      laser.style.left = `${x}px`;
-      gameArea.appendChild(laser);
-      setTimeout(() => laser.remove(), 200);
+    function shootLaser(x, y) {
+      ctx.strokeStyle = "red";
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(window.innerWidth / 2, window.innerHeight);
+      ctx.lineTo(x, y);
+      ctx.stroke();
+      setTimeout(() => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }, 100);
     }
 
     function poopAttack(fromImg) {
