@@ -97,6 +97,33 @@
       100% { transform: scale(2) translateY(-120vh) rotate(1080deg); opacity: 0; }
     }
 
+    /* 🌪️ 彩虹💩龍捲風動畫 */
+    @keyframes poopTornado {
+      0% {
+        transform: perspective(600px) rotate(0deg) scale(0.3) translate(0, 0);
+        opacity: 1;
+      }
+      40% {
+        transform: perspective(600px) rotate(540deg) scale(1.2) translateX(50px) translateY(-50px);
+        opacity: 1;
+      }
+      70% {
+        transform: perspective(600px) rotate(900deg) scale(2) translateX(-70px) translateY(-200px);
+        opacity: 0.9;
+      }
+      100% {
+        transform: perspective(600px) rotate(1260deg) scale(2.6) translateX(0) translateY(-120vh);
+        opacity: 0;
+      }
+    }
+    .poop-tornado {
+      position: absolute;
+      width: 60px;
+      transform-origin: center;
+      animation: poopTornado 3s ease-out forwards;
+      z-index: 1500;
+    }
+
     #poopOverlay {
       display: none;
       position: fixed;
@@ -159,7 +186,6 @@
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
-    // 💩 base64 動態生成
     const poopDataURI = (() => {
       const c = document.createElement("canvas");
       c.width = 40;
@@ -225,37 +251,36 @@
         img.classList.add("float");
       }
 
-img.onclick = (e) => {
-  shootLaser(e.clientX, e.clientY);
+      img.onclick = (e) => {
+        shootLaser(e.clientX, e.clientY);
 
-  if (img.src.includes("normal_potato2")) {
-    img.src = "normal_potato3.png";
-    return;
-  }
+        if (img.src.includes("normal_potato2")) {
+          img.src = "normal_potato3.png";
+          return;
+        }
 
-  if (img.src.includes("normal_potato4")) {
-    img.dataset.hitCount++;
-    if (img.dataset.hitCount < Math.floor(Math.random() * 2) + 2) return;
-  }
+        if (img.src.includes("normal_potato4")) {
+          img.dataset.hitCount++;
+          if (img.dataset.hitCount < Math.floor(Math.random() * 2) + 2) return;
+        }
 
-  // 💩 改成在換圖前先判斷
-  const originalSrc = img.src;
-  if (originalSrc.includes("normal_potato1")) {
-    if (Math.random() < 0.5) poopAttack(img);
-  }
+        const originalSrc = img.src;
+        if (originalSrc.includes("normal_potato1")) {
+          if (Math.random() < 0.5) poopAttack(img);
+        }
 
-  let variant = Math.floor(Math.random() * shootFaces.length);
-  img.src = shootFaces[variant];
-  img.style.pointerEvents = "none";
+        let variant = Math.floor(Math.random() * shootFaces.length);
+        img.src = shootFaces[variant];
+        img.style.pointerEvents = "none";
 
-  setTimeout(() => {
-    img.remove();
-  }, 500);
+        setTimeout(() => {
+          img.remove();
+        }, 500);
 
-  score++;
-  updateScore();
-  checkMedal();
-};
+        score++;
+        updateScore();
+        checkMedal();
+      };
 
       gameArea.appendChild(img);
 
@@ -296,17 +321,39 @@ img.onclick = (e) => {
       }, 100);
     }
 
+    /* 🌪️ 改造後龍捲風彩虹💩攻擊 */
     function poopAttack(fromImg) {
-      for (let i = 0; i < 5; i++) {
+      const cx = parseFloat(fromImg.style.left);
+      const cy = parseFloat(fromImg.style.top);
+      const poopCount = 8;
+
+      for (let i = 0; i < poopCount; i++) {
         const poop = document.createElement("img");
         poop.src = "poop_attack.png";
-        poop.classList.add("poop");
-        poop.style.left = fromImg.style.left;
-        poop.style.top = fromImg.style.top;
-        poop.style.animationDelay = `${i * 0.1}s`;
+        poop.classList.add("poop-tornado");
+
+        const offsetX = (Math.random() - 0.5) * 120;
+        const offsetY = (Math.random() - 0.5) * 80;
+        poop.style.left = cx + offsetX + "px";
+        poop.style.top = cy + offsetY + "px";
+
+        poop.style.animationDelay = `${i * 0.15}s`;
+        poop.style.transform = `rotate(${Math.random() * 360}deg)`;
+
         gameArea.appendChild(poop);
-        setTimeout(() => poop.remove(), 1000);
+        setTimeout(() => poop.remove(), 3000);
       }
+
+      const centerPoop = document.createElement("img");
+      centerPoop.src = "poop_attack.png";
+      centerPoop.classList.add("poop-tornado");
+      centerPoop.style.left = cx + "px";
+      centerPoop.style.top = cy + "px";
+      centerPoop.style.zIndex = 1600;
+      centerPoop.style.animation = "poopTornado 3.2s ease-in-out forwards";
+      centerPoop.style.filter = "brightness(1.5) drop-shadow(0 0 10px gold)";
+      gameArea.appendChild(centerPoop);
+      setTimeout(() => centerPoop.remove(), 3200);
     }
 
     function fullScreenPoop() {
@@ -314,8 +361,8 @@ img.onclick = (e) => {
       const bigPoop = document.getElementById("bigPoop");
 
       overlay.style.display = "flex";
-      document.body.style.pointerEvents = "none"; // 暫時禁用互動
-      bigPoop.style.top = "-200px"; // 重設位置
+      document.body.style.pointerEvents = "none";
+      bigPoop.style.top = "-200px";
       bigPoop.style.animation = "fallDown 1.5s ease-in forwards";
 
       setTimeout(() => {
@@ -341,7 +388,7 @@ img.onclick = (e) => {
         popup.style.display = "block";
       } else if (score === 100 && !awardedMedals["100"]) {
         awardedMedals["100"] = true;
-        text.innerHTML = `🎉 <b>獲得勳章：地瓜毀滅神話 👑</b><br>妳是地瓜的惡夢、宇宙的傳說！`;
+        text.innerHTML = `🎉 <b>獲得勳章：地瓜毀滅神話 👑</b><br>你是地瓜的惡夢、宇宙的傳說！`;
         popup.style.display = "block";
       }
     }
