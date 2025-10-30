@@ -8,14 +8,16 @@
       margin: 0;
       padding: 0;
       overflow: hidden;
-      background: url('market_background.jpg') no-repeat center center fixed;
-      background-size: cover;
+      background: linear-gradient(135deg, #ffe4f4, #ffcfe1);
       font-family: sans-serif;
     }
     canvas {
       display: block;
+      position: absolute;
+      top: 0;
+      left: 0;
     }
-    #startOverlay, #poopOverlay, #medalPopup {
+    #startOverlay, #poopOverlay, #medalOverlay {
       position: absolute;
       z-index: 99;
       top: 50%;
@@ -40,12 +42,24 @@
       z-index: 10;
       font-weight: bold;
     }
-    #medalPopup {
-      animation: glow 1s ease-in-out infinite alternate;
+    #particleLayer {
+      pointer-events: none;
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      z-index: 5;
     }
-    @keyframes glow {
-      from { box-shadow: 0 0 10px #fff; }
-      to { box-shadow: 0 0 20px gold; }
+    .star {
+      position: absolute;
+      color: gold;
+      font-size: 20px;
+      animation: fall 2s ease-out forwards;
+    }
+    @keyframes fall {
+      0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+      100% { transform: translateY(300px) rotate(360deg); opacity: 0; }
     }
   </style>
 </head>
@@ -53,7 +67,8 @@
   <div id="score">你已射爆 0 顆地瓜球</div>
   <div id="startOverlay">點擊開始掃射地瓜球</div>
   <div id="poopOverlay">糟糕，你被地瓜球丟屎了！<br>點一下繼續</div>
-  <div id="medalPopup"></div>
+  <div id="medalOverlay"></div>
+  <div id="particleLayer"></div>
   <canvas id="game"></canvas>
 
   <script>
@@ -64,16 +79,16 @@
 
     const startOverlay = document.getElementById("startOverlay");
     const poopOverlay = document.getElementById("poopOverlay");
-    const medalPopup = document.getElementById("medalPopup");
+    const medalOverlay = document.getElementById("medalOverlay");
     const scoreDisplay = document.getElementById("score");
+    const particleLayer = document.getElementById("particleLayer");
 
     let started = false;
+    let paused = false;
     let score = 0;
     const potatoes = [];
-    const poopParticles = [];
-
-    const normalImages = [];
     const cryFaces = [];
+    const normalImages = [];
     for (let i = 1; i <= 10; i++) {
       const img = new Image();
       img.src = `normal_potato${i}.png`;
@@ -84,8 +99,6 @@
       img.src = `shoot_potato${i}.png`;
       cryFaces.push(img);
     }
-    const poopImg = new Image();
-    poopImg.src = 'poop_attack.png';
 
     class Potato {
       constructor(x, y, type) {
@@ -94,85 +107,68 @@
         this.type = type;
         this.img = normalImages[type];
         this.cry = cryFaces[Math.floor(Math.random() * cryFaces.length)];
-        this.size = 60;
-        this.speed = 1 + Math.random();
-        if (type === 5) this.speed = 0.5;
-        if (type === 8) this.speed = 2;
-        if (type === 9) this.speed = 0;
         this.hit = false;
         this.life = (type === 3) ? Math.ceil(Math.random() * 3) : 1;
-      }
-      update() {
-        if (this.hit || this.speed === 0) return;
-        this.y += this.speed;
+        this.width = 0;
+        this.height = 0;
+        this.loaded = false;
+        this.img.onload = () => {
+          this.width = this.img.width;
+          this.height = this.img.height;
+          this.loaded = true;
+        };
       }
       draw() {
+        if (!this.loaded) return;
         const img = this.hit ? this.cry : this.img;
-        ctx.drawImage(img, this.x, this.y, this.size, this.size);
+        ctx.drawImage(img, this.x, this.y);
       }
     }
 
     function spawnPotato() {
-      const x = Math.random() * (canvas.width - 60);
       const type = Math.floor(Math.random() * 10);
-      potatoes.push(new Potato(x, 0, type));
+      const tempImg = normalImages[type];
+      const x = Math.random() * (canvas.width - tempImg.width);
+      const y = Math.random() * (canvas.height - tempImg.height);
+      potatoes.push(new Potato(x, y, type));
     }
 
-    function drawPoopParticles() {
-      poopParticles.forEach((p, i) => {
-        p.x += p.vx;
-        p.y += p.vy;
-        p.scale += 0.01;
-        p.rot += 0.1;
-        ctx.save();
-        ctx.translate(p.x, p.y);
-        ctx.rotate(p.rot);
-        ctx.drawImage(poopImg, -15 * p.scale, -15 * p.scale, 30 * p.scale, 30 * p.scale);
-        ctx.restore();
-        if (p.y > canvas.height + 50) poopParticles.splice(i, 1);
-      });
-    }
-
-    function showMedal(score) {
-      let text = '';
-      if (score === 20) text = "🥉 地瓜碎星者<br>你的彈射，讓地瓜碎成宇宙微塵";
-      if (score === 50) text = "🥈 暗影射手・滅地瓜流<br>你的手速，地瓜球夫婦嚇得連夜跑走";
-      if (score === 100) text = "👑 地瓜毀滅神話<br>妳是地瓜的惡夢、宇宙的傳說！";
-      if (text) {
-        medalPopup.innerHTML = text;
-        medalPopup.style.display = 'block';
-        setTimeout(() => medalPopup.style.display = 'none', 3000);
+    function animateParticles() {
+      for (let i = 0; i < 20; i++) {
+        const star = document.createElement('div');
+        star.className = 'star';
+        star.style.left = Math.random() * window.innerWidth + 'px';
+        star.style.top = '-20px';
+        star.textContent = '✨';
+        particleLayer.appendChild(star);
+        setTimeout(() => star.remove(), 2000);
       }
     }
 
-    function animate() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      potatoes.forEach(p => {
-        p.update();
-        p.draw();
-      });
-      drawPoopParticles();
-      requestAnimationFrame(animate);
+    function showMedal(score) {
+      let content = '';
+      if (score === 20) content = "<h2>🎉 獲得勳章！</h2><p>🥉 地瓜碎星者<br>你的彈射，讓地瓜碎成宇宙微塵</p>";
+      if (score === 50) content = "<h2>🎉 獲得勳章！</h2><p>🥈 暗影射手・滅地瓜流<br>你的手速，地瓜球夫婦嚇得連夜跑走</p>";
+      if (score === 100) content = "<h2>🎉 獲得勳章！</h2><p>👑 地瓜毀滅神話<br>妳是地瓜的惡夢、宇宙的傳說！</p>";
+      if (content) {
+        paused = true;
+        medalOverlay.innerHTML = content + '<br><button onclick="resumeGame()">我收下了</button>';
+        medalOverlay.style.display = 'block';
+        animateParticles();
+      }
+    }
+
+    function resumeGame() {
+      paused = false;
+      medalOverlay.style.display = 'none';
     }
 
     canvas.addEventListener("click", e => {
-      if (!started) return;
+      if (!started || paused) return;
       const mx = e.clientX, my = e.clientY;
       potatoes.forEach((p, i) => {
-        if (!p.hit && mx > p.x && mx < p.x + p.size && my > p.y && my < p.y + p.size) {
+        if (!p.hit && mx > p.x && mx < p.x + p.width && my > p.y && my < p.y + p.height) {
           p.life--;
-          if (p.type === 0 && Math.random() < 0.2) {
-            for (let j = 0; j < 6; j++) {
-              poopParticles.push({
-                x: p.x + 30,
-                y: p.y + 30,
-                vx: (Math.random() - 0.5) * 10,
-                vy: Math.random() * 5,
-                rot: 0,
-                scale: 0.5 + Math.random() * 0.5
-              });
-            }
-          }
           if (p.type === 1) {
             p.type = 2;
             p.img = normalImages[2];
@@ -189,27 +185,21 @@
       });
     });
 
-    function randomPoopAttack() {
-      if (Math.random() < 0.01) {
-        poopOverlay.style.display = 'block';
-        setTimeout(() => poopOverlay.style.display = 'none', 2000);
-      }
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      if (!paused) potatoes.forEach(p => p.draw());
+      requestAnimationFrame(animate);
     }
 
     setInterval(() => {
-      if (!started) return;
-      spawnPotato();
-      randomPoopAttack();
-    }, 2000);
+      if (started && !paused) spawnPotato();
+    }, 1000);
 
     startOverlay.style.display = 'block';
     startOverlay.addEventListener('click', () => {
       startOverlay.style.display = 'none';
       started = true;
     });
-
-    poopOverlay.addEventListener('click', () => poopOverlay.style.display = 'none');
-    animate();
   </script>
 </body>
 </html>
