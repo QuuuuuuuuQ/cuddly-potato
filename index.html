@@ -27,12 +27,39 @@
     .potato {
       position: absolute;
       cursor: pointer;
-      transition: transform 0.1s ease;
       height: 80px;
       pointer-events: auto;
     }
 
-    #startOverlay, #medalPopup {
+    .float {
+      animation: float 2s ease-in-out infinite;
+    }
+    .zigzag {
+      animation: zigzag 3s linear infinite;
+    }
+    .bounce {
+      animation: bounce 1s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    @keyframes zigzag {
+      0% { transform: translateX(0) translateY(0); }
+      25% { transform: translateX(-20px) translateY(10px); }
+      50% { transform: translateX(20px) translateY(0); }
+      75% { transform: translateX(-20px) translateY(-10px); }
+      100% { transform: translateX(0) translateY(0); }
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-20px); }
+    }
+
+    #startOverlay, #medalPopup, #poopOverlay {
       position: absolute;
       top: 50%;
       left: 50%;
@@ -69,6 +96,20 @@
       0% { transform: scale(0.2) rotate(0deg); opacity: 1; }
       100% { transform: scale(1.5) translateY(-100vh) rotate(720deg); opacity: 0; }
     }
+
+    #poopOverlay {
+      display: none;
+      width: 100vw;
+      height: 100vh;
+      background: url('poop_overlay.png') center center no-repeat;
+      background-size: cover;
+      color: white;
+      font-size: 28px;
+      z-index: 3000;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
   </style>
 </head>
 <body>
@@ -81,6 +122,7 @@
     <div id="medalText"></div>
     <button onclick="closeMedal()">我收下了！</button>
   </div>
+  <div id="poopOverlay">💩 糟糕，你被地瓜球丟屎了！</div>
   <canvas id="laserCanvas"></canvas>
 
   <script>
@@ -90,6 +132,7 @@
     let score = 0;
     let awardedMedals = {};
     let balancedQueue = [...potatoTypes];
+    const movingPotatoes = [];
 
     const canvas = document.getElementById("laserCanvas");
     const ctx = canvas.getContext("2d");
@@ -112,6 +155,10 @@
     function startGame() {
       document.getElementById("startOverlay").style.display = "none";
       setInterval(spawnPotato, 2000);
+      setInterval(() => {
+        if (Math.random() < 0.1) fullScreenPoop();
+      }, 15000);
+      requestAnimationFrame(updatePotatoPositions);
     }
 
     function spawnPotato() {
@@ -122,19 +169,42 @@
       img.style.top = Math.random() * (window.innerHeight - 100) + "px";
       img.dataset.hitCount = 0;
 
+      let speed = 1;
+      if (img.src.includes("normal_potato5")) speed = 0.5;
+      if (img.src.includes("normal_potato9")) speed = 2;
+      if (img.src.includes("normal_potato7")) speed = 1.2;
+
+      img.dataset.speed = speed;
+      img.dataset.directionX = Math.random() > 0.5 ? 1 : -1;
+      img.dataset.directionY = Math.random() > 0.5 ? 1 : -1;
+
+      if (img.src.includes("normal_potato8")) {
+        img.classList.add("bounce");
+      } else if (img.src.includes("normal_potato6")) {
+        img.classList.add("zigzag");
+      } else {
+        img.classList.add("float");
+      }
+
       img.onclick = (e) => {
         shootLaser(e.clientX, e.clientY);
+
+        if (img.src.includes("normal_potato2")) {
+          img.src = "normal_potato3.png";
+          return;
+        }
+
+        if (img.src.includes("normal_potato4")) {
+          img.dataset.hitCount++;
+          if (img.dataset.hitCount < Math.floor(Math.random() * 2) + 2) return;
+        }
+
         let variant = Math.floor(Math.random() * shootFaces.length);
         img.src = shootFaces[variant];
         img.style.pointerEvents = "none";
 
         if (img.src.includes("normal_potato1")) {
           if (Math.random() < 0.2) poopAttack(img);
-        }
-
-        if (img.src.includes("normal_potato4")) {
-          img.dataset.hitCount++;
-          if (img.dataset.hitCount < Math.floor(Math.random() * 2) + 2) return;
         }
 
         setTimeout(() => {
@@ -147,6 +217,36 @@
       };
 
       gameArea.appendChild(img);
+
+      if (!img.src.includes("normal_potato10")) {
+        movingPotatoes.push(img);
+      }
+    }
+
+    function updatePotatoPositions() {
+      movingPotatoes.forEach((img) => {
+        if (img.dataset.pause && Date.now() < parseInt(img.dataset.pause)) return;
+
+        let x = parseFloat(img.style.left);
+        let y = parseFloat(img.style.top);
+        let dx = parseFloat(img.dataset.directionX);
+        let dy = parseFloat(img.dataset.directionY);
+        let speed = parseFloat(img.dataset.speed);
+
+        x += dx * speed;
+        y += dy * speed;
+
+        if (x <= 0 || x >= window.innerWidth - 80) img.dataset.directionX *= -1;
+        if (y <= 0 || y >= window.innerHeight - 80) img.dataset.directionY *= -1;
+
+        img.style.left = x + "px";
+        img.style.top = y + "px";
+
+        if (img.src.includes("normal_potato7") && Math.random() < 0.002) {
+          img.dataset.pause = Date.now() + 2000;
+        }
+      });
+      requestAnimationFrame(updatePotatoPositions);
     }
 
     function shootLaser(x, y) {
@@ -172,6 +272,17 @@
         gameArea.appendChild(poop);
         setTimeout(() => poop.remove(), 1000);
       }
+    }
+
+    function fullScreenPoop() {
+      const overlay = document.getElementById("poopOverlay");
+      overlay.style.display = "flex";
+      setTimeout(() => {
+        overlay.style.display = "none";
+      }, 2000);
+      overlay.onclick = () => {
+        overlay.style.display = "none";
+      };
     }
 
     function updateScore() {
