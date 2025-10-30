@@ -225,35 +225,37 @@
         img.classList.add("float");
       }
 
-      img.onclick = (e) => {
-        shootLaser(e.clientX, e.clientY);
+img.onclick = (e) => {
+  shootLaser(e.clientX, e.clientY);
 
-        if (img.src.includes("normal_potato2")) {
-          img.src = "normal_potato3.png";
-          return;
-        }
+  if (img.src.includes("normal_potato2")) {
+    img.src = "normal_potato3.png";
+    return;
+  }
 
-        if (img.src.includes("normal_potato4")) {
-          img.dataset.hitCount++;
-          if (img.dataset.hitCount < Math.floor(Math.random() * 2) + 2) return;
-        }
+  if (img.src.includes("normal_potato4")) {
+    img.dataset.hitCount++;
+    if (img.dataset.hitCount < Math.floor(Math.random() * 2) + 2) return;
+  }
 
-        let variant = Math.floor(Math.random() * shootFaces.length);
-        img.src = shootFaces[variant];
-        img.style.pointerEvents = "none";
+  // 💩 改成在換圖前先判斷
+  const originalSrc = img.src;
+  if (originalSrc.includes("normal_potato1")) {
+    if (Math.random() < 0.5) poopAttack(img);
+  }
 
-        if (img.src.includes("normal_potato1")) {
-          if (Math.random() < 0.5) poopAttack(img);
-        }
+  let variant = Math.floor(Math.random() * shootFaces.length);
+  img.src = shootFaces[variant];
+  img.style.pointerEvents = "none";
 
-        setTimeout(() => {
-          img.remove();
-        }, 500);
+  setTimeout(() => {
+    img.remove();
+  }, 500);
 
-        score++;
-        updateScore();
-        checkMedal();
-      };
+  score++;
+  updateScore();
+  checkMedal();
+};
 
       gameArea.appendChild(img);
 
