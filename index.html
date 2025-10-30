@@ -8,16 +8,15 @@
       margin: 0;
       padding: 0;
       overflow: hidden;
+    }
+    body {
       background: linear-gradient(135deg, #ffe4f4, #ffcfe1);
       font-family: sans-serif;
     }
     canvas {
       display: block;
-      position: absolute;
-      top: 0;
-      left: 0;
     }
-    #startOverlay, #poopOverlay, #medalOverlay {
+    #startOverlay, #poopOverlay, #medalPopup {
       position: absolute;
       z-index: 99;
       top: 50%;
@@ -42,164 +41,158 @@
       z-index: 10;
       font-weight: bold;
     }
-    #particleLayer {
-      pointer-events: none;
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      top: 0;
-      left: 0;
-      z-index: 5;
+    #medalPopup {
+      animation: glow 1s ease-in-out infinite alternate;
     }
-    .star {
-      position: absolute;
-      color: gold;
-      font-size: 20px;
-      animation: fall 2s ease-out forwards;
+    @keyframes glow {
+      from { box-shadow: 0 0 10px #fff; }
+      to   { box-shadow: 0 0 20px #ffd700; }
     }
-    @keyframes fall {
-      0% { transform: translateY(0) rotate(0deg); opacity: 1; }
-      100% { transform: translateY(300px) rotate(360deg); opacity: 0; }
+    #medalPopup button {
+      margin-top: 20px;
+      padding: 8px 16px;
+      font-size: 18px;
+      background: #ffd700;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .particle {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background: gold;
+      border-radius: 50%;
+      opacity: 1;
+      animation: particle-fall 1.5s linear forwards;
+    }
+    @keyframes particle-fall {
+      to {
+        transform: translateY(200px) rotate(720deg);
+        opacity: 0;
+      }
     }
   </style>
 </head>
 <body>
   <div id="score">你已射爆 0 顆地瓜球</div>
   <div id="startOverlay">點擊開始掃射地瓜球</div>
-  <div id="poopOverlay">糟糕，你被地瓜球丟屎了！<br>點一下繼續</div>
-  <div id="medalOverlay"></div>
-  <div id="particleLayer"></div>
-  <canvas id="game"></canvas>
-
+  <div id="poopOverlay">💩 糟糕，你被地瓜球丟屎了！</div>
+  <div id="medalPopup"></div>
+  <canvas id="gameCanvas"></canvas>
   <script>
-    const canvas = document.getElementById("game");
-    const ctx = canvas.getContext("2d");
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    let width = canvas.width = window.innerWidth;
+    let height = canvas.height = window.innerHeight;
 
-    const startOverlay = document.getElementById("startOverlay");
-    const poopOverlay = document.getElementById("poopOverlay");
-    const medalOverlay = document.getElementById("medalOverlay");
-    const scoreDisplay = document.getElementById("score");
-    const particleLayer = document.getElementById("particleLayer");
+    const startOverlay = document.getElementById('startOverlay');
+    const poopOverlay = document.getElementById('poopOverlay');
+    const medalPopup = document.getElementById('medalPopup');
+    const scoreBoard = document.getElementById('score');
 
-    let started = false;
-    let paused = false;
-    let score = 0;
-    const potatoes = [];
-    const cryFaces = [];
-    const normalImages = [];
+    let potatoes = [];
+    let shotCount = 0;
+    let medalsAwarded = {};
+
+    const potatoImgs = [];
+    const shootImgs = [];
+
+    // preload images
     for (let i = 1; i <= 10; i++) {
       const img = new Image();
       img.src = `normal_potato${i}.png`;
-      normalImages.push(img);
+      potatoImgs.push(img);
     }
     for (let i = 1; i <= 7; i++) {
       const img = new Image();
       img.src = `shoot_potato${i}.png`;
-      cryFaces.push(img);
+      shootImgs.push(img);
     }
 
-    class Potato {
-      constructor(x, y, type) {
-        this.x = x;
-        this.y = y;
-        this.type = type;
-        this.img = normalImages[type];
-        this.cry = cryFaces[Math.floor(Math.random() * cryFaces.length)];
-        this.hit = false;
-        this.life = (type === 3) ? Math.ceil(Math.random() * 3) : 1;
-        this.width = 0;
-        this.height = 0;
-        this.loaded = false;
-        this.img.onload = () => {
-          this.width = this.img.width;
-          this.height = this.img.height;
-          this.loaded = true;
-        };
-      }
-      draw() {
-        if (!this.loaded) return;
-        const img = this.hit ? this.cry : this.img;
-        ctx.drawImage(img, this.x, this.y);
-      }
+    function addPotato() {
+      const img = potatoImgs[Math.floor(Math.random() * potatoImgs.length)];
+      img.onload = () => {
+        const x = Math.random() * (width - img.width);
+        const y = Math.random() * (height - img.height);
+        potatoes.push({ x, y, img, hit: false });
+      };
     }
 
-    function spawnPotato() {
-      const type = Math.floor(Math.random() * 10);
-      const tempImg = normalImages[type];
-      const x = Math.random() * (canvas.width - tempImg.width);
-      const y = Math.random() * (canvas.height - tempImg.height);
-      potatoes.push(new Potato(x, y, type));
-    }
-
-    function animateParticles() {
-      for (let i = 0; i < 20; i++) {
-        const star = document.createElement('div');
-        star.className = 'star';
-        star.style.left = Math.random() * window.innerWidth + 'px';
-        star.style.top = '-20px';
-        star.textContent = '✨';
-        particleLayer.appendChild(star);
-        setTimeout(() => star.remove(), 2000);
-      }
-    }
-
-    function showMedal(score) {
-      let content = '';
-      if (score === 20) content = "<h2>🎉 獲得勳章！</h2><p>🥉 地瓜碎星者<br>你的彈射，讓地瓜碎成宇宙微塵</p>";
-      if (score === 50) content = "<h2>🎉 獲得勳章！</h2><p>🥈 暗影射手・滅地瓜流<br>你的手速，地瓜球夫婦嚇得連夜跑走</p>";
-      if (score === 100) content = "<h2>🎉 獲得勳章！</h2><p>👑 地瓜毀滅神話<br>妳是地瓜的惡夢、宇宙的傳說！</p>";
-      if (content) {
-        paused = true;
-        medalOverlay.innerHTML = content + '<br><button onclick="resumeGame()">我收下了</button>';
-        medalOverlay.style.display = 'block';
-        animateParticles();
-      }
-    }
-
-    function resumeGame() {
-      paused = false;
-      medalOverlay.style.display = 'none';
-    }
-
-    canvas.addEventListener("click", e => {
-      if (!started || paused) return;
-      const mx = e.clientX, my = e.clientY;
-      potatoes.forEach((p, i) => {
-        if (!p.hit && mx > p.x && mx < p.x + p.width && my > p.y && my < p.y + p.height) {
-          p.life--;
-          if (p.type === 1) {
-            p.type = 2;
-            p.img = normalImages[2];
-            return;
-          }
-          if (p.life <= 0) {
-            p.hit = true;
-            score++;
-            scoreDisplay.innerText = `你已射爆 ${score} 顆地瓜球`;
-            showMedal(score);
-            setTimeout(() => potatoes.splice(i, 1), 500);
-          }
+    function drawPotatoes() {
+      potatoes.forEach(p => {
+        if (!p.hit && p.img.complete) {
+          ctx.drawImage(p.img, p.x, p.y);
         }
       });
-    });
+    }
+
+    function shoot(x, y) {
+      potatoes.forEach(p => {
+        if (!p.hit && x >= p.x && x <= p.x + p.img.width && y >= p.y && y <= p.y + p.img.height) {
+          p.hit = true;
+          shotCount++;
+          scoreBoard.textContent = `你已射爆 ${shotCount} 顆地瓜球`;
+          showHitImage(p.x, p.y);
+          checkMedals();
+        }
+      });
+    }
+
+    function showHitImage(x, y) {
+      const img = shootImgs[Math.floor(Math.random() * shootImgs.length)];
+      ctx.drawImage(img, x, y);
+    }
+
+    function checkMedals() {
+      const medals = [
+        { score: 20, title: '地瓜碎星者 🥉', desc: '你的彈射，讓地瓜碎成宇宙微塵' },
+        { score: 50, title: '暗影射手・滅地瓜流 🥈', desc: '你的手速，地瓜球夫婦嚇得連夜跑走' },
+        { score: 100, title: '地瓜毀滅神話 👑', desc: '妳是地瓜的惡夢、宇宙的傳說！' }
+      ];
+      medals.forEach(m => {
+        if (shotCount === m.score && !medalsAwarded[m.score]) {
+          showMedal(m);
+          medalsAwarded[m.score] = true;
+        }
+      });
+    }
+
+    function showMedal(medal) {
+      medalPopup.innerHTML = `<h2>🎉 獲得勳章！</h2><p>${medal.title}</p><p>${medal.desc}</p><button onclick="closeMedal()">我收下了！</button>`;
+      medalPopup.style.display = 'block';
+      // cute sparkle particles
+      for (let i = 0; i < 20; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        particle.style.left = `${Math.random() * width}px`;
+        particle.style.top = `${Math.random() * 200}px`;
+        document.body.appendChild(particle);
+        setTimeout(() => particle.remove(), 1500);
+      }
+    }
+
+    function closeMedal() {
+      medalPopup.style.display = 'none';
+    }
 
     function animate() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      if (!paused) potatoes.forEach(p => p.draw());
+      ctx.clearRect(0, 0, width, height);
+      drawPotatoes();
       requestAnimationFrame(animate);
     }
 
-    setInterval(() => {
-      if (started && !paused) spawnPotato();
-    }, 1000);
+    canvas.addEventListener('click', e => shoot(e.clientX, e.clientY));
 
-    startOverlay.style.display = 'block';
-    startOverlay.addEventListener('click', () => {
-      startOverlay.style.display = 'none';
-      started = true;
-    });
+    // === START ===
+    window.onload = () => {
+      startOverlay.style.display = 'block';
+      startOverlay.onclick = () => {
+        startOverlay.style.display = 'none';
+        setInterval(addPotato, 2000);
+        animate();
+      };
+    }
   </script>
 </body>
 </html>
