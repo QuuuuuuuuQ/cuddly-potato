@@ -115,15 +115,12 @@
       overflow: hidden;
     }
 
-    .bigPoop {
-      position: absolute;
-      top: -200px;
-      font-size: 150px;
-      animation: fallDown 1.5s ease-in forwards;
-      setTimeout(() => {
-  overlay.style.display = "none";
-  document.body.style.pointerEvents = "auto";
-}, 6500); // 1.5 秒掉落 + 5 秒停
+.bigPoop {
+  position: absolute;
+  top: -200px;
+  font-size: 150px;
+  animation: fallDown 1.5s ease-in forwards;
+}
 
     @keyframes fallDown {
       0% { transform: translateY(-200px) rotate(0deg); opacity: 1; }
@@ -322,7 +319,7 @@
       setTimeout(() => {
         overlay.style.display = "none";
         document.body.style.pointerEvents = "auto";
-      }, 2000);
+      }, 6500);
     }
 
     function updateScore() {
